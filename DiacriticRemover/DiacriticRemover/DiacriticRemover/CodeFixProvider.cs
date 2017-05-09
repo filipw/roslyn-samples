@@ -50,14 +50,15 @@ namespace DiacriticRemover
         {
             var newName = CleanUpText(typeDecl.Identifier.Text);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken);
 
             var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
             return newSolution;
         }
 
-        private static String CleanUpText(String germanText)
+        // stackoverflow http://stackoverflow.com/questions/1271567/how-do-i-replace-accents-german-in-net
+        private static string CleanUpText(string germanText)
         {
             var map = new Dictionary<char, string>() {
               { 'ä', "ae" },
@@ -69,8 +70,7 @@ namespace DiacriticRemover
               { 'ß', "ss" }
             };
 
-            return germanText.ToCharArray().Aggregate(
-                          new StringBuilder(),
+            return germanText.ToCharArray().Aggregate(new StringBuilder(),
                           (sb, c) =>
                           {
                               if (map.TryGetValue(c, out string r))

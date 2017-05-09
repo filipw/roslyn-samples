@@ -13,7 +13,7 @@ namespace DiacriticRemover
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class DiacriticRemoverAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "DiacriticRemover";
+        public const string DiagnosticId = "RS001";
 
         private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));
