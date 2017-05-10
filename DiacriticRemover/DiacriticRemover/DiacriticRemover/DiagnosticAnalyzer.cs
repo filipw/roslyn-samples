@@ -26,14 +26,27 @@ namespace DiacriticRemover
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+            //context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType);
+            context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.VariableDeclarator, SyntaxKind.Parameter,
+                SyntaxKind.PropertyDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration);
+       }
+
+        private static void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context)
+        {
+            var token = context.Node.DescendantTokens().FirstOrDefault(x => x.Kind() == SyntaxKind.IdentifierToken);
+            if (token == null) return;
+            if (token.Text.ToCharArray().All(x => x < 128)) return;
+
+            var diagnostic = Diagnostic.Create(Rule, token.GetLocation(), token.Text);
+            context.ReportDiagnostic(diagnostic);
         }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
         {
-            if (context.Symbol.Name.ToCharArray().All(x => x < 128)) return;
+            var name = context.Symbol.Name;
+            if (name.ToCharArray().All(x => x < 128)) return;
 
-            var diagnostic = Diagnostic.Create(Rule, context.Symbol.Locations[0], context.Symbol.Name);
+            var diagnostic = Diagnostic.Create(Rule, context.Symbol.Locations[0], name);
             context.ReportDiagnostic(diagnostic);
         }
     }
