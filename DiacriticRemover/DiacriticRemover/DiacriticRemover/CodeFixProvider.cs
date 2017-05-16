@@ -33,27 +33,25 @@ namespace DiacriticRemover
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
-            var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<BaseTypeDeclarationSyntax>().First();
+            var node = root.FindNode(diagnosticSpan);
 
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: title,
-                    createChangedSolution: c => Rename(context.Document, declaration, c),
+                    createChangedSolution: c => Rename(context.Document, node, c),
                     equivalenceKey: title),
                 diagnostic);
         }
 
-        private async Task<Solution> Rename(Document document, BaseTypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        private async Task<Solution> Rename(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var newName = CleanUpText(typeDecl.Identifier.Text);
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken);
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            var newName = CleanUpText(symbol.Name);
 
-            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
             return newSolution;
         }
 

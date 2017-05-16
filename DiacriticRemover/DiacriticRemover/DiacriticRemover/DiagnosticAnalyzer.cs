@@ -26,7 +26,6 @@ namespace DiacriticRemover
 
         public override void Initialize(AnalysisContext context)
         {
-            //context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType);
             context.RegisterSyntaxNodeAction(AnalyzeSyntaxNode, SyntaxKind.VariableDeclarator, SyntaxKind.Parameter,
                 SyntaxKind.PropertyDeclaration, SyntaxKind.MethodDeclaration, SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration);
        }
@@ -38,15 +37,6 @@ namespace DiacriticRemover
             if (token.Text.ToCharArray().All(x => x < 128)) return;
 
             var diagnostic = Diagnostic.Create(Rule, token.GetLocation(), token.Text);
-            context.ReportDiagnostic(diagnostic);
-        }
-
-        private static void AnalyzeSymbol(SymbolAnalysisContext context)
-        {
-            var name = context.Symbol.Name;
-            if (name.ToCharArray().All(x => x < 128)) return;
-
-            var diagnostic = Diagnostic.Create(Rule, context.Symbol.Locations[0], name);
             context.ReportDiagnostic(diagnostic);
         }
     }
